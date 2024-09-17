@@ -7,7 +7,9 @@ defmodule RenewexConverterTest do
 
   describe "converter" do
     test "convert example file" do
-      {:ok, _example} = "#{@example_dir}/example.rnw" |> File.read()
+      assert {:ok, content} = "#{@example_dir}/example.rnw" |> File.read()
+      assert {:ok, %Renewex.Document{} = doc} = Renewex.parse_document(content)
+      assert {:ok, _} = RenewexConverter.consume_document(doc)
     end
 
     test "convert selected files" do
@@ -16,7 +18,9 @@ defmodule RenewexConverterTest do
       assert Enum.count(files) > 0, "test files exist"
 
       for file <- skip_excluded_files(files) do
-        assert {:ok, _example} = File.read(Path.join(@example_dir, file)), "can read #{file}"
+        assert {:ok, content} = File.read(Path.join(@example_dir, file)), "can read #{file}"
+        assert {:ok, %Renewex.Document{} = doc} = Renewex.parse_document(content)
+        assert {:ok, _} = RenewexConverter.consume_document(doc)
 
         assert true
       end
@@ -29,8 +33,12 @@ defmodule RenewexConverterTest do
       assert Enum.count(files) > 0, "test files exist"
 
       for file <- skip_excluded_files(files) do
-        assert {:ok, _example} = File.read(Path.join(@full_examples_dir, file)),
-               "can read #{file}"
+        assert {:ok, content} = File.read(Path.join(@full_examples_dir, file))
+
+        assert {:ok, %Renewex.Document{} = doc} = Renewex.parse_document(content)
+        assert {:ok, _} = RenewexConverter.consume_document(doc)
+
+        "can read #{file}"
       end
     end
   end

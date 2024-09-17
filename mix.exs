@@ -33,6 +33,7 @@ defmodule RenewexConverter.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.34.0", only: :dev, runtime: false},
+      {:uuid, "~> 1.1"},
       {:renewex, "~> 0.12.0"}
     ]
   end
