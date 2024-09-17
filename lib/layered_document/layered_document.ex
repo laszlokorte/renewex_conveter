@@ -1,4 +1,4 @@
-defmodule RenewexConverter.NormalizedDocument do
+defmodule RenewexConverter.LayeredDocument do
   defstruct [
     :version,
     :kind,
@@ -14,7 +14,7 @@ defmodule RenewexConverter.NormalizedDocument do
         hierarchy,
         hyperlinks
       ),
-      do: %RenewexConverter.NormalizedDocument{
+      do: %RenewexConverter.LayeredDocument{
         version: version,
         kind: kind,
         layers: layers,
