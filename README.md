@@ -2,7 +2,7 @@
 
 ![RenewEx](./guides/images/logo.png)
 
-[Renew](http://renew.de/) file converter. Converts files parsed with [RenewEx](https://hexdocs.pm/renewex_converter/) ([Repository](https://github.com/laszlokorte/renewex_converter/)) into a canonical layer structure that can be worked with more easily. 
+[Renew](http://renew.de/) file converter to turn files parsed with [RenewEx](https://hexdocs.pm/renewex/) ([Repository](https://github.com/laszlokorte/renewex/)) into a canonical structure that can be worked with more easily (for example be imported into a database). 
 
 [![Hex.pm](https://img.shields.io/hexpm/v/renewex_converter.svg)](https://hex.pm/packages/renewex_converter) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/renewex_converter/)
 
