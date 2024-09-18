@@ -10,7 +10,7 @@
 
 ## Test cases
 
-The conveter is tested [on more than 1000 example files.](./test/fixtures/valid_files)
+The conveter is tested [on more than 1000 example files.](https://github.com/laszlokorte/renewex/test/fixtures/valid_files)
 
 ### Running tests
 
