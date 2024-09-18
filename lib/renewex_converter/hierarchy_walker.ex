@@ -1,31 +1,45 @@
 defmodule RenewexConverter.HierarchyWalker do
-  alias RenewexConverter.Config
+  alias RenewexConverter.DocumentReader
+  alias RenewexConverter.Conversion
 
-  def find_unique_figures(config, root_figures, refs_with_ids) do
+  def find_unique_figures(
+        %RenewexConverter.DocumentReader{
+          document: %Renewex.Document{
+            root: %Renewex.Storable{fields: %{figures: root_figures}}
+          }
+        } = reader
+      ) do
     unique_figures =
       root_figures
       |> Enum.with_index()
       |> Enum.flat_map(fn {fig, i} ->
-        collect_nested_figures(config, fig, i, refs_with_ids)
+        collect_nested_figures(reader, fig, i)
       end)
       |> Enum.group_by(fn {{_, uid}, _} -> uid end)
       |> Enum.map(fn {_uid, dupls} -> List.last(dupls) end)
+      |> Enum.map(fn {{storable, uid}, zindex} ->
+        %{
+          storable: storable,
+          id: uid,
+          zindex: zindex
+        }
+      end)
 
     hierarchy =
       Enum.flat_map(root_figures, fn fig ->
-        collect_hierarchy(config, fig, refs_with_ids)
+        collect_hierarchy(reader, fig)
       end)
 
     {unique_figures, hierarchy}
   end
 
-  defp collect_nested_figures(%Config{} = conf, {:ref, r}, index, refs_with_ids) do
-    case Enum.at(refs_with_ids, r) do
+  defp collect_nested_figures(%DocumentReader{id_map: id_map} = reader, {:ref, r}, index) do
+    case Enum.at(id_map, r) do
       {%Renewex.Storable{class_name: class_name, fields: %{figures: figures}}, _} = el ->
-        Config.fix_hierarchy_order(conf, figures, class_name)
+        Conversion.fix_hierarchy_order(reader, figures, class_name)
         |> Enum.with_index()
         |> Enum.flat_map(fn {fig, i} ->
-          collect_nested_figures(conf, fig, i, refs_with_ids)
+          collect_nested_figures(reader, fig, i)
         end)
         |> then(
           &Enum.concat(
@@ -43,15 +57,21 @@ defmodule RenewexConverter.HierarchyWalker do
     end
   end
 
-  defp collect_hierarchy(%Config{} = conf, {:ref, r}, refs_with_ids, ancestors \\ []) do
-    case Enum.at(refs_with_ids, r) do
+  defp collect_hierarchy(
+         %RenewexConverter.DocumentReader{
+           document: %Renewex.Document{},
+           id_map: id_map
+         } = reader,
+         {:ref, r},
+         ancestors \\ []
+       ) do
+    case Enum.at(id_map, r) do
       {%Renewex.Storable{class_name: class_name, fields: %{figures: figures}}, own_id} ->
-        Config.fix_hierarchy_order(conf, figures, class_name)
+        Conversion.fix_hierarchy_order(reader, figures, class_name)
         |> Enum.flat_map(fn fig ->
           collect_hierarchy(
-            conf,
+            reader,
             fig,
-            refs_with_ids,
             [
               {own_id, 0}
               | Enum.map(ancestors, fn
