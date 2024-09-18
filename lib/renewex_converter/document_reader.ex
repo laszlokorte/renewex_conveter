@@ -2,6 +2,22 @@ defmodule RenewexConverter.DocumentReader do
   alias RenewexConverter.LinkFinder
   alias RenewexConverter.HierarchyWalker
   alias RenewexConverter.Config
+  alias RenewexConverter.Conversion
+  alias RenewexConverter.DocumentReader
+
+  defstruct [:conversion, :stylesheet, :document, :id_map]
+
+  def new(conversion, stylesheet, %Renewex.Document{refs: refs} = document) do
+    %RenewexConverter.DocumentReader{
+      conversion: conversion,
+      stylesheet: stylesheet,
+      document: document,
+      id_map:
+        refs
+        |> Enum.map(fn s -> {s, Conversion.generate_layer_id(conversion)} end)
+        |> Enum.to_list()
+    }
+  end
 
   def read(%RenewexConverter.Config{} = config, %Renewex.Document{
         version: version,
@@ -112,18 +128,12 @@ defmodule RenewexConverter.DocumentReader do
 
     layer_style =
       Config.layer_style_for(config, :edge, attrs)
-      |> then(fn
-        nil ->
-          nil
-
-        %{} = map ->
-          Map.update(map, "background_color", nil, fn _ ->
-            Config.convert_line_decoration_background(
-              config,
-              resolve_ref(refs, Map.get(fields, :start_decoration)),
-              resolve_ref(refs, Map.get(fields, :end_decoration))
-            )
-          end)
+      |> Map.update("background_color", nil, fn _ ->
+        Config.convert_line_decoration_background(
+          config,
+          resolve_ref(refs, Map.get(fields, :start_decoration)),
+          resolve_ref(refs, Map.get(fields, :end_decoration))
+        )
       end)
 
     line_style = Config.line_style(config, attrs)
@@ -185,6 +195,9 @@ defmodule RenewexConverter.DocumentReader do
   def read_layer_content(_config, _refs, _attrs, %Renewex.Storable{}) do
     nil
   end
+
+  def resolve_ref(%DocumentReader{document: %Renewex.Document{refs: refs}}, {:ref, r}),
+    do: Enum.at(refs, r)
 
   def resolve_ref(refs, {:ref, r}), do: Enum.at(refs, r)
   def resolve_ref(_, nil), do: nil
