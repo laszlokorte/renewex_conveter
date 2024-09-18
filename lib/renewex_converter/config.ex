@@ -1,19 +1,9 @@
 defmodule RenewexConverter.Config do
   alias RenewexConverter.Config
 
-  @font_style_bitmaks [
-                        {:bold, 1},
-                        {:italic, 2},
-                        {:underlined, 4}
-                      ]
-                      |> Map.new()
+  @font_style_bitmaks Map.new([{:bold, 1}, {:italic, 2}, {:underlined, 4}])
 
-  @text_alignments [
-                     {0, :left},
-                     {1, :center},
-                     {2, :right}
-                   ]
-                   |> Map.new()
+  @text_alignments Map.new([{0, :left}, {1, :center}, {2, :right}])
   @text_alignment_default :left
 
   @transparent_color_marker_rgba {:rgba, 255, 199, 158, 255}
@@ -22,19 +12,11 @@ defmodule RenewexConverter.Config do
 
   @transparent_color_marker_web "transparent"
 
-  @font_family_mapping [
-                         {"SansSerif", "sans-serif"},
-                         {"Serif", "serif"}
-                       ]
-                       |> Map.new()
+  @font_family_mapping Map.new([{"SansSerif", "sans-serif"}, {"Serif", "serif"}])
 
-  @smoothness_mapping [
-                        {0, :linear},
-                        {1, :autobezier}
-                      ]
-                      |> Map.new()
+  @smoothness_mapping Map.new([{0, :linear}, {1, :autobezier}])
 
-  @line_decoration_mapping [
+  @line_decoration_mapping Map.new([
                              {"de.renew.gui.AssocArrowTip", "arrow-tip-normal"},
                              {"de.renew.diagram.AssocArrowTip", "arrow-tip-normal"},
                              {"de.renew.gui.CompositionArrowTip", "arrow-tip-lines"},
@@ -46,14 +28,11 @@ defmodule RenewexConverter.Config do
                              {"de.renew.gui.CircleDecoration", "arrow-tip-circle"},
                              {"CH.ifa.draw.figures.ArrowTip", "arrow-tip-normal"},
                              {"de.renew.gui.DoubleArrowTip", "arrow-tip-double"}
-                           ]
-                           |> Map.new()
-
-  @attr_visibility "Visibility"
+                           ])
 
   @cyclic_path_shapes ["CH.ifa.draw.contrib.PolygonFigure"]
 
-  @triangle_direction_mapping [
+  @triangle_direction_mapping Map.new([
                                 {0, "triangle-up"},
                                 {1, "triangle-ne"},
                                 {2, "triangle-right"},
@@ -62,8 +41,7 @@ defmodule RenewexConverter.Config do
                                 {5, "triangle-sw"},
                                 {6, "triangle-left"},
                                 {7, "triangle-nw"}
-                              ]
-                              |> Map.new()
+                              ])
 
   @reorder_children_of [
     "de.renew.netcomponents.NetComponentFigure"
@@ -100,10 +78,21 @@ defmodule RenewexConverter.Config do
     "smoothness" => 0
   }
 
-  defstruct [:grammar]
+  @attr_key_fill_color "FillColor"
+  @attr_key_frame_color "FrameColor"
+  @attr_key_line_shape "LineShape"
+  @attr_key_line_style "LineStyle"
+  @attr_key_line_width "LineWidth"
+  @attr_key_opacity "Opacity"
+  @attr_key_text_alignment "TextAlignment"
+  @attr_key_text_color "TextColor"
+  @attr_key_right_interface "RightInterface"
+  @attr_key_visibility "Visibility"
 
-  def new(grammar) do
-    %RenewexConverter.Config{grammar: grammar}
+  defstruct [:grammar, :symbols]
+
+  def new(grammar, symbols \\ Map.new()) do
+    %RenewexConverter.Config{grammar: grammar, symbols: symbols}
   end
 
   def convert_color(%Config{}, m) when is_binary(m), do: m
@@ -168,8 +157,6 @@ defmodule RenewexConverter.Config do
   def matches_sub(%{} = map, %{} = pattern) do
     pattern
     |> Enum.reduce_while(true, fn {k, v}, acc ->
-      # This statement checks if the key from map_a exists in map_b. if the key exists, also checks the 
-      # value of the keys. If it is true, iteration is continued, otherwise it is halted and it will return false
       if matches_sub(v, Map.get(map, k)) do
         {:cont, acc}
       else
@@ -183,7 +170,7 @@ defmodule RenewexConverter.Config do
   def convert_attrs_hidden(%Config{}, nil), do: false
 
   def convert_attrs_hidden(%Config{} = conf, %{} = attrs),
-    do: convert_visibility_to_hidden(conf, Map.get(attrs, @attr_visibility))
+    do: convert_visibility_to_hidden(conf, Map.get(attrs, @attr_key_visibility))
 
   def convert_visibility_to_hidden(%Config{}, visible) when is_boolean(visible), do: not visible
   def convert_visibility_to_hidden(%Config{}, nil), do: false
@@ -294,7 +281,7 @@ defmodule RenewexConverter.Config do
         class_name,
         "de.renew.interfacenets.datatypes.InterfaceFigure"
       ) ->
-        {if Map.get(attrs, "RightInterface") do
+        {if Map.get(attrs, @attr_key_right_interface) do
            "bracket-right-outer"
          else
            "bracket-left-outer"
@@ -341,6 +328,7 @@ defmodule RenewexConverter.Config do
   end
 
   def symbol_id(config, symbol_name) do
+    Map.get(config.symbols, symbol_name)
   end
 
   def fix_hierarchy_order(%Config{grammar: grammar}, refs, class_name) do
@@ -360,22 +348,17 @@ defmodule RenewexConverter.Config do
   def layer_style_for(%Config{} = config, :box, attrs) do
     case attrs do
       nil ->
-        nil
-
-        %{
-          "opacity" => 1,
-          "background_color" => "#70DB93",
-          "border_color" => "black",
-          "border_width" => "1"
-        }
+        @default_layer_style
 
       attrs ->
         %{
-          "opacity" => Map.get(attrs, "Opacity", 1),
+          "opacity" => Map.get(attrs, @attr_key_opacity, 1),
           "background_color" =>
-            Config.convert_color(config, Map.get(attrs, "FillColor", "#70DB93")),
-          "border_color" => Config.convert_color(config, Map.get(attrs, "FrameColor", "black")),
-          "border_width" => Config.convert_border_width(config, Map.get(attrs, "LineWidth", 1))
+            Config.convert_color(config, Map.get(attrs, @attr_key_fill_color, "#70DB93")),
+          "border_color" =>
+            Config.convert_color(config, Map.get(attrs, @attr_key_frame_color, "black")),
+          "border_width" =>
+            Config.convert_border_width(config, Map.get(attrs, @attr_key_line_width, 1))
         }
     end
   end
@@ -383,24 +366,19 @@ defmodule RenewexConverter.Config do
   def layer_style_for(%Config{} = config, :text, attrs) do
     case attrs do
       nil ->
-        nil
-
-      # %{
-      #   "opacity" => 1,
-      #   "background_color" => "#70DB93",
-      #   "border_color" => "black",
-      #   "border_width" => "1",
-      #   "border_dash_array" => nil
-      # }
+        @default_layer_style
 
       attrs ->
         %{
-          "opacity" => Map.get(attrs, "Opacity", 1),
+          "opacity" => Map.get(attrs, @attr_key_opacity, 1),
           "background_color" =>
-            Config.convert_color(config, Map.get(attrs, "FillColor", "#70DB93")),
-          "border_color" => Config.convert_color(config, Map.get(attrs, "FrameColor", "black")),
-          "border_width" => Config.convert_border_width(config, Map.get(attrs, "LineWidth", 1)),
-          "border_dash_array" => Config.convert_line_style(config, Map.get(attrs, "LineStyle"))
+            Config.convert_color(config, Map.get(attrs, @attr_key_fill_color, "#70DB93")),
+          "border_color" =>
+            Config.convert_color(config, Map.get(attrs, @attr_key_frame_color, "black")),
+          "border_width" =>
+            Config.convert_border_width(config, Map.get(attrs, @attr_key_line_width, 1)),
+          "border_dash_array" =>
+            Config.convert_line_style(config, Map.get(attrs, @attr_key_line_style))
         }
     end
   end
@@ -408,18 +386,11 @@ defmodule RenewexConverter.Config do
   def layer_style_for(%Config{} = config, :edge, attrs) do
     case attrs do
       nil ->
-        nil
-
-      # %{
-      #   "opacity" => 1,
-      #   "background_color" => "#70DB93",
-      #   "border_color" => "black",
-      #   "border_width" => "1"
-      # }
+        @default_layer_style
 
       attrs ->
         %{
-          "opacity" => Map.get(attrs, "Opacity", 1),
+          "opacity" => Map.get(attrs, @attr_key_opacity, 1),
           "background_color" =>
             Config.convert_color(
               config,
@@ -428,8 +399,10 @@ defmodule RenewexConverter.Config do
                 "FillColor"
               )
             ),
-          "border_color" => Config.convert_color(config, Map.get(attrs, "FrameColor", "black")),
-          "border_width" => Config.convert_border_width(config, Map.get(attrs, "LineWidth", 1))
+          "border_color" =>
+            Config.convert_color(config, Map.get(attrs, @attr_key_frame_color, "black")),
+          "border_width" =>
+            Config.convert_border_width(config, Map.get(attrs, @attr_key_line_width, 1))
         }
     end
   end
@@ -448,12 +421,16 @@ defmodule RenewexConverter.Config do
 
       attrs ->
         %{
-          "stroke_width" => Config.convert_border_width(config, Map.get(attrs, "LineWidth", 1)),
-          "stroke_color" => Config.convert_color(config, Map.get(attrs, "FrameColor", "black")),
+          "stroke_width" =>
+            Config.convert_border_width(config, Map.get(attrs, @attr_key_line_width, 1)),
+          "stroke_color" =>
+            Config.convert_color(config, Map.get(attrs, @attr_key_frame_color, "black")),
           "stroke_join" => "rect",
           "stroke_cap" => "rect",
-          "stroke_dash_array" => Config.convert_line_style(config, Map.get(attrs, "LineStyle")),
-          "smoothness" => Config.convert_smoothness(config, Map.get(attrs, "LineShape", 0))
+          "stroke_dash_array" =>
+            Config.convert_line_style(config, Map.get(attrs, @attr_key_line_style)),
+          "smoothness" =>
+            Config.convert_smoothness(config, Map.get(attrs, @attr_key_line_shape, 0))
         }
     end
   end
@@ -466,7 +443,8 @@ defmodule RenewexConverter.Config do
           Map.get(fields, :fCurrentFontStyle, 0),
           :underlined
         ),
-      "alignment" => Config.convert_alignment(config, Map.get(attrs, "TextAlignment", 0)),
+      "alignment" =>
+        Config.convert_alignment(config, Map.get(attrs, @attr_key_text_alignment, 0)),
       "font_size" => Map.get(fields, :fCurrentFontSize, 12),
       "font_family" =>
         Config.convert_font(
@@ -485,7 +463,7 @@ defmodule RenewexConverter.Config do
           Map.get(fields, :fCurrentFontStyle, 0),
           :italic
         ),
-      "text_color" => Config.convert_color(config, Map.get(attrs, "TextColor", "black")),
+      "text_color" => Config.convert_color(config, Map.get(attrs, @attr_key_text_color, "black")),
       "rich" => Config.is_rich_text(config, class_name)
     }
   end
