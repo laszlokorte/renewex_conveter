@@ -63,16 +63,32 @@ defmodule RenewexConverter.HierarchyWalker do
         |> Enum.concat([{own_id, own_id, 0}])
         |> Enum.concat(
           Enum.map(ancestors, fn
-            {parent_id, distance} -> {parent_id, own_id, distance + 1}
+            {parent_id, distance} ->
+              %LayeredDocument.Nesting{
+                ancestor_id: parent_id,
+                descendant_id: own_id,
+                depth: distance + 1
+              }
           end)
         )
         |> Enum.to_list()
 
       {%Renewex.Storable{}, child_id} ->
         Enum.map(ancestors, fn
-          {parent_id, distance} -> {parent_id, child_id, distance + 1}
+          {parent_id, distance} ->
+            %LayeredDocument.Nesting{
+              ancestor_id: parent_id,
+              descendant_id: child_id,
+              depth: distance + 1
+            }
         end)
-        |> Enum.concat([{child_id, child_id, 0}])
+        |> Enum.concat([
+          %LayeredDocument.Nesting{
+            ancestor_id: child_id,
+            descendant_id: child_id,
+            depth: 0
+          }
+        ])
 
       _ ->
         []

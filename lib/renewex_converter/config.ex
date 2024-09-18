@@ -340,6 +340,9 @@ defmodule RenewexConverter.Config do
     end
   end
 
+  def symbol_id(config, symbol_name) do
+  end
+
   def fix_hierarchy_order(%Config{grammar: grammar}, refs, class_name) do
     if(
       Enum.any?(@reorder_children_of, &Renewex.Hierarchy.is_subtype_of(grammar, class_name, &1))
