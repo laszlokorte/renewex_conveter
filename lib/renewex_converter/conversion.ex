@@ -1,7 +1,7 @@
 defmodule RenewexConverter.Conversion do
   alias RenewexConverter.Conversion
 
-  defstruct symbol_map: Map.new()
+  defstruct []
 
   @transparent_color_marker_rgba {:rgba, 255, 199, 158, 255}
   @transparent_color_marker_rgb {:rgb, 255, 199, 158, 255}
@@ -22,34 +22,19 @@ defmodule RenewexConverter.Conversion do
     "de.renew.netcomponents.NetComponentFigure"
   ]
 
-  @attr_key_fill_color "FillColor"
-  @attr_key_frame_color "FrameColor"
-  @attr_key_line_shape "LineShape"
-  @attr_key_line_style "LineStyle"
-  @attr_key_line_width "LineWidth"
-  @attr_key_opacity "Opacity"
-  @attr_key_text_alignment "TextAlignment"
-  @attr_key_text_color "TextColor"
-  @attr_key_right_interface "RightInterface"
-  @attr_key_visibility "Visibility"
-
-  def key_for(%Conversion{}, :fill_color), do: @attr_key_fill_color
-  def key_for(%Conversion{}, :frame_color), do: @attr_key_frame_color
-  def key_for(%Conversion{}, :line_shape), do: @attr_key_line_shape
-  def key_for(%Conversion{}, :line_style), do: @attr_key_line_style
-  def key_for(%Conversion{}, :line_width), do: @attr_key_line_width
-  def key_for(%Conversion{}, :opacity), do: @attr_key_opacity
-  def key_for(%Conversion{}, :text_alignment), do: @attr_key_text_alignment
-  def key_for(%Conversion{}, :text_color), do: @attr_key_text_color
-  def key_for(%Conversion{}, :right_interface), do: @attr_key_right_interface
-  def key_for(%Conversion{}, :visibility), do: @attr_key_visibility
+  def key_for(%Conversion{}, :fill_color), do: "FillColor"
+  def key_for(%Conversion{}, :frame_color), do: "FrameColor"
+  def key_for(%Conversion{}, :line_shape), do: "LineShape"
+  def key_for(%Conversion{}, :line_style), do: "LineStyle"
+  def key_for(%Conversion{}, :line_width), do: "LineWidth"
+  def key_for(%Conversion{}, :opacity), do: "Opacity"
+  def key_for(%Conversion{}, :text_alignment), do: "TextAlignment"
+  def key_for(%Conversion{}, :text_color), do: "TextColor"
+  def key_for(%Conversion{}, :right_interface), do: "RightInterface"
+  def key_for(%Conversion{}, :visibility), do: "Visibility"
 
   def convert(%Conversion{}, :visibility, value) when is_boolean(value), do: not value
   def convert(%Conversion{}, :visibility, _), do: not false
-
-  def symbol_id(%Conversion{symbol_map: symbol_map}, shape_name),
-    do: Map.get(symbol_map, shape_name)
-
   def convert_color(%Conversion{}, m) when is_binary(m), do: m
 
   def convert_color(%Conversion{}, @transparent_color_marker_rgba),
@@ -90,11 +75,6 @@ defmodule RenewexConverter.Conversion do
   def convert_border_width(%Conversion{}, nil), do: nil
 
   def convert_smoothness(%Conversion{}, smoothness), do: Map.get(@smoothness_mapping, smoothness)
-
-  def convert_attrs_hidden(%Conversion{}, nil), do: false
-
-  def convert_attrs_hidden(%Conversion{} = conf, %{} = attrs),
-    do: convert_visibility_to_hidden(conf, Map.get(attrs, @attr_key_visibility))
 
   def convert_visibility_to_hidden(%Conversion{}, visible) when is_boolean(visible),
     do: not visible

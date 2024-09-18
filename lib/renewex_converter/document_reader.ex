@@ -95,7 +95,7 @@ defmodule RenewexConverter.DocumentReader do
   end
 
   def read_layer_content(
-        %DocumentReader{conversion: conversion} = reader,
+        reader,
         %Renewex.Storable{
           class_name: class_name,
           fields: %{x: x, y: y, w: w, h: h} = fields
@@ -114,7 +114,7 @@ defmodule RenewexConverter.DocumentReader do
         "width" => w,
         "height" => h,
         "symbol_shape_attributes" => shape_attributes,
-        "symbol_shape_id" => Conversion.symbol_id(conversion, shape_name)
+        "symbol_shape" => shape_name
       },
       "style" => layer_style
     }

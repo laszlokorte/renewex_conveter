@@ -6,17 +6,17 @@ defmodule RenewexConverter.Stylesheet do
   defstruct []
 
   @line_decoration_mapping Map.new([
-                             {"de.renew.gui.AssocArrowTip", "arrow-tip-normal"},
-                             {"de.renew.diagram.AssocArrowTip", "arrow-tip-normal"},
-                             {"de.renew.gui.CompositionArrowTip", "arrow-tip-lines"},
-                             {"de.renew.gui.IsaArrowTip", "arrow-tip-triangle"},
-                             {"de.renew.gui.fs.IsaArrowTip", "arrow-tip-triangle"},
-                             {"fs.IsaArrowTip", "arrow-tip-triangle"},
-                             {"de.renew.gui.fs.AssocArrowTip", "arrow-tip-normal"},
-                             {"de.renew.diagram.SynchronousMessageArrowTip", "arrow-tip-lines"},
-                             {"de.renew.gui.CircleDecoration", "arrow-tip-circle"},
-                             {"CH.ifa.draw.figures.ArrowTip", "arrow-tip-normal"},
-                             {"de.renew.gui.DoubleArrowTip", "arrow-tip-double"}
+                             {"de.renew.gui.AssocArrowTip", :arrow_tip_normal},
+                             {"de.renew.diagram.AssocArrowTip", :arrow_tip_normal},
+                             {"de.renew.gui.CompositionArrowTip", :arrow_tip_lines},
+                             {"de.renew.gui.IsaArrowTip", :arrow_tip_triangle},
+                             {"de.renew.gui.fs.IsaArrowTip", :arrow_tip_triangle},
+                             {"fs.IsaArrowTip", :arrow_tip_triangle},
+                             {"de.renew.gui.fs.AssocArrowTip", :arrow_tip_normal},
+                             {"de.renew.diagram.SynchronousMessageArrowTip", :arrow_tip_lines},
+                             {"de.renew.gui.CircleDecoration", :arrow_tip_circle},
+                             {"CH.ifa.draw.figures.ArrowTip", :arrow_tip_normal},
+                             {"de.renew.gui.DoubleArrowTip", :arrow_tip_double}
                            ])
 
   @default_layer_style %{
@@ -46,14 +46,14 @@ defmodule RenewexConverter.Stylesheet do
   # }
 
   @triangle_direction_mapping Map.new([
-                                {0, "triangle-up"},
-                                {1, "triangle-ne"},
-                                {2, "triangle-right"},
-                                {3, "triangle-se"},
-                                {4, "triangle-down"},
-                                {5, "triangle-sw"},
-                                {6, "triangle-left"},
-                                {7, "triangle-nw"}
+                                {0, :triangle_up},
+                                {1, :triangle_ne},
+                                {2, :triangle_right},
+                                {3, :triangle_se},
+                                {4, :triangle_down},
+                                {5, :triangle_sw},
+                                {6, :triangle_left},
+                                {7, :triangle_nw}
                               ])
 
   def layer_style_for(
@@ -208,7 +208,7 @@ defmodule RenewexConverter.Stylesheet do
     |> Map.merge(line_tips(reader, fields))
   end
 
-  def line_tips(%DocumentReader{conversion: conversion} = reader, fields) do
+  def line_tips(%DocumentReader{} = reader, fields) do
     %{
       "source_tip" =>
         Stylesheet.line_decoration(
@@ -220,21 +220,15 @@ defmodule RenewexConverter.Stylesheet do
           reader,
           DocumentReader.resolve_ref(reader, Map.get(fields, :end_decoration))
         ),
-      "source_tip_symbol_shape_id" =>
-        Conversion.symbol_id(
-          conversion,
-          Stylesheet.line_decoration(
-            reader,
-            DocumentReader.resolve_ref(reader, Map.get(fields, :start_decoration))
-          )
+      "source_tip_symbol_shape" =>
+        Stylesheet.line_decoration(
+          reader,
+          DocumentReader.resolve_ref(reader, Map.get(fields, :start_decoration))
         ),
-      "target_tip_symbol_shape_id" =>
-        Conversion.symbol_id(
-          conversion,
-          Stylesheet.line_decoration(
-            reader,
-            DocumentReader.resolve_ref(reader, Map.get(fields, :end_decoration))
-          )
+      "target_tip_symbol_shape" =>
+        Stylesheet.line_decoration(
+          reader,
+          DocumentReader.resolve_ref(reader, Map.get(fields, :end_decoration))
         )
     }
   end
@@ -291,14 +285,14 @@ defmodule RenewexConverter.Stylesheet do
         class_name,
         "de.renew.bpmn.figures.DataStoreFigure"
       ) ->
-        {"database", nil}
+        {:database, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.bpmn.figures.DataFigure") ->
         {case Map.get(fields, :type) do
-           0 -> "rect-fold-paper-proportional"
-           1 -> "rect-fold-paper-proportional-arrow-right"
-           2 -> "rect-fold-paper-proportional-arrow-right-black"
-           3 -> "rect-fold-paper-proportional-striped"
+           0 -> :rect_fold_paper_proportional
+           1 -> :rect_fold_paper_proportional_arrow_right
+           2 -> :rect_fold_paper_proportional_arrow_right_black
+           3 -> :rect_fold_paper_proportional_striped
          end, nil}
 
       Renewex.Hierarchy.is_subtype_of(
@@ -307,8 +301,8 @@ defmodule RenewexConverter.Stylesheet do
         "de.renew.bpmn.figures.ActivityFigure"
       ) ->
         {case Map.get(fields, :type) do
-           0 -> "bpmn-activity"
-           1 -> "bpmn-activity-exchange"
+           0 -> :bpmn_activity
+           1 -> :bpmn_activity_exchange
          end,
          %{
            "rx" => 5,
@@ -321,69 +315,69 @@ defmodule RenewexConverter.Stylesheet do
         "de.renew.bpmn.figures.GatewayFigure"
       ) ->
         {case Map.get(fields, :type) do
-           0 -> "bpmn-gateway"
-           1 -> "bpmn-gateway-xor"
-           2 -> "bpmn-gateway-and"
+           0 -> :bpmn_gateway
+           1 -> :bpmn_gateway_xor
+           2 -> :bpmn_gateway_and
          end, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.bpmn.figures.EventFigure") ->
         {case {Map.get(fields, :position), Map.get(fields, :type), Map.get(fields, :throwing)} do
-           {0, 0, false} -> "bpmn-start-standard"
-           {0, 0, true} -> "bpmn-start-standard-throwing"
-           {0, 1, false} -> "bpmn-start-message"
-           {0, 1, true} -> "bpmn-start-message-throwing"
-           {0, 2, false} -> "bpmn-start-terminate"
-           {0, 2, true} -> "bpmn-start-terminate-throwing"
-           {1, 0, false} -> "bpmn-interm-standard"
-           {1, 0, true} -> "bpmn-interm-standard-throwing"
-           {1, 1, false} -> "bpmn-interm-message"
-           {1, 1, true} -> "bpmn-interm-message-throwing"
-           {1, 2, false} -> "bpmn-interm-terminate"
-           {1, 2, true} -> "bpmn-interm-terminate-throwing"
-           {2, 0, false} -> "bpmn-end-standard"
-           {2, 0, true} -> "bpmn-end-standard-throwing"
-           {2, 1, false} -> "bpmn-end-message"
-           {2, 1, true} -> "bpmn-end-message-throwing"
-           {2, 2, false} -> "bpmn-end-terminate"
-           {2, 2, true} -> "bpmn-end-terminate-throwing"
+           {0, 0, false} -> :bpmn_start_standard
+           {0, 0, true} -> :bpmn_start_standard_throwing
+           {0, 1, false} -> :bpmn_start_message
+           {0, 1, true} -> :bpmn_start_message_throwing
+           {0, 2, false} -> :bpmn_start_terminate
+           {0, 2, true} -> :bpmn_start_terminate_throwing
+           {1, 0, false} -> :bpmn_interm_standard
+           {1, 0, true} -> :bpmn_interm_standard_throwing
+           {1, 1, false} -> :bpmn_interm_message
+           {1, 1, true} -> :bpmn_interm_message_throwing
+           {1, 2, false} -> :bpmn_interm_terminate
+           {1, 2, true} -> :bpmn_interm_terminate_throwing
+           {2, 0, false} -> :bpmn_end_standard
+           {2, 0, true} -> :bpmn_end_standard_throwing
+           {2, 1, false} -> :bpmn_end_message
+           {2, 1, true} -> :bpmn_end_message_throwing
+           {2, 2, false} -> :bpmn_end_terminate
+           {2, 2, true} -> :bpmn_end_terminate_throwing
          end, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.bpmn.figures.PoolFigure") ->
-        {"bpmn-pool", nil}
+        {:bpmn_pool, nil}
 
       Renewex.Hierarchy.is_subtype_of(
         grammar,
         class_name,
         "de.renew.diagram.RoleDescriptorFigure"
       ) ->
-        {"rect", nil}
+        {:rect, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.diagram.VJoinFigure") ->
         # fields.decoration.class_name == de.renew.diagram.XORDecoration
         # fields.decoration.class_name == de.renew.diagram.ANDDecoration
-        {"bar-horizontal-black-diamond-quad", nil}
+        {:bar_horizontal_black_diamond_quad, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.diagram.VSplitFigure") ->
-        {"bar-horizontal-black-diamond-quad", nil}
+        {:bar_horizontal_black_diamond_quad, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.diagram.HSplitFigure") ->
-        {"bar-vertical-black-diamond-quad", nil}
+        {:bar_vertical_black_diamond_quad, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.diagram.TaskFigure") ->
-        {"bar-vertical-black-diamond-quad", nil}
+        {:bar_vertical_black_diamond_quad, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "fs.PartitionFigure") ->
-        {"rect", nil}
+        {:rect, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "CH.ifa.draw.figures.ImageFigure") ->
-        {"rect", nil}
+        {:rect, nil}
 
       Renewex.Hierarchy.is_subtype_of(
         grammar,
         class_name,
         "de.renew.interfacenets.datatypes.InterfaceBoxFigure"
       ) ->
-        {"bracket-both-outer", nil}
+        {:bracket_both_outer, nil}
 
       Renewex.Hierarchy.is_subtype_of(
         grammar,
@@ -391,26 +385,26 @@ defmodule RenewexConverter.Stylesheet do
         "de.renew.interfacenets.datatypes.InterfaceFigure"
       ) ->
         {if Map.get(attrs, Conversion.key_for(conversion, :right_interface)) do
-           "bracket-right-outer"
+           :bracket_right_outer
          else
-           "bracket-left-outer"
+           :bracket_left_outer
          end, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "CH.ifa.draw.contrib.TriangleFigure") ->
         {Map.get(@triangle_direction_mapping, Map.get(fields, :rotation)), nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "CH.ifa.draw.contrib.DiamondFigure") ->
-        {"diamond", nil}
+        {:diamond, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "de.renew.gui.VirtualPlaceFigure") ->
-        {"ellipse-double-in", nil}
+        {:ellipse_double_in, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "CH.ifa.draw.figures.EllipseFigure") ->
-        {"ellipse", nil}
+        {:ellipse, nil}
 
       Renewex.Hierarchy.is_subtype_of(grammar, class_name, "CH.ifa.draw.figures.PieFigure") ->
         # "pie:#{Map.get(fields, :start_angle)}:#{Map.get(fields, :end_angle)}"
-        {"pie",
+        {:pie,
          %{
            "start_angle" => Map.get(fields, :start_angle),
            "end_angle" => Map.get(fields, :end_angle)
@@ -422,7 +416,7 @@ defmodule RenewexConverter.Stylesheet do
         "CH.ifa.draw.figures.RoundRectangleFigure"
       ) ->
         # "roundrect:#{Map.get(fields, :arc_width, 0)}:#{Map.get(fields, :arc_height, 0)}"
-        {"rect-round",
+        {:rect_round,
          %{
            "rx" => Map.get(fields, :arc_width, 0),
            "ry" => Map.get(fields, :arc_height, 0)
@@ -433,7 +427,7 @@ defmodule RenewexConverter.Stylesheet do
         class_name,
         "CH.ifa.draw.figures.RectangleFigure"
       ) ->
-        {"rect", nil}
+        {:rect, nil}
 
       true ->
         raise class_name
