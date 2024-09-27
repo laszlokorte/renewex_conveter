@@ -1,4 +1,6 @@
 defmodule RenewexConverterTest do
+  alias Renewex.Hierarchy
+  alias Renewex.Storable
   alias RenewexConverter.LayeredDocument
   use ExUnit.Case
   doctest RenewexConverter

@@ -14,7 +14,11 @@ defmodule RenewexConverter.Conversion do
   @text_alignments Map.new([{0, :left}, {1, :center}, {2, :right}])
   @text_alignment_default :left
 
-  @font_family_mapping Map.new([{"SansSerif", "sans-serif"}, {"Serif", "serif"}])
+  @font_family_mapping Map.new([
+                         {"SansSerif", "sans-serif"},
+                         {"Serif", "serif"},
+                         {"Monospaced", "monospace"}
+                       ])
 
   @smoothness_mapping Map.new([{0, :linear}, {1, :autobezier}])
 
