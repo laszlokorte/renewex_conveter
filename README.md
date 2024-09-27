@@ -43,7 +43,7 @@ mix test --exclude slow
 	#	content: _,
 	#	tag: "de.renew.gui.PlaceFigure",
 	#	z_index: 0,
-	#	hidden: false} |_ ]
+	#	hidden: false} | _]
 	hierarchy: hierarchy, 
 	# ^ [%LayeredDocument.Nesting{
 	#	ancestor_id: _,
@@ -52,7 +52,7 @@ mix test --exclude slow
 	hyperlinks: hyperlinks,
 	# ^ [%LayeredDocument.Hyperlink{
 	#	source_id: _,
-	#	target_id: 0} | _]
+	#	target_id: _} | _]
 }} = RenewexConverter.consume_document(doc)
 ```
 
