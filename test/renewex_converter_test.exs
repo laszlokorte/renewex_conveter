@@ -1,9 +1,8 @@
 defmodule RenewexConverterTest do
-  alias Renewex.Hierarchy
-  alias Renewex.Storable
-  alias RenewexConverter.LayeredDocument
   use ExUnit.Case
   doctest RenewexConverter
+
+  alias RenewexConverter.LayeredDocument
 
   @example_dir Path.join([__DIR__, "fixtures", "selected_examples"])
   @full_examples_dir Path.join([__DIR__, "fixtures", "valid_files"])
